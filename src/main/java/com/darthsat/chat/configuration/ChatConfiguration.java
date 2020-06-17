@@ -1,5 +1,6 @@
 package com.darthsat.chat.configuration;
 
+import com.darthsat.chat.messaging.DeleteUserCommand;
 import com.darthsat.chat.messaging.Message;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -7,12 +8,9 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
-import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.core.DefaultKafkaProducerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.core.*;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
@@ -20,10 +18,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
+@EnableJpaRepositories("com.darthsat.chat.repository")
 public class ChatConfiguration {
 
     @Bean
     public ProducerFactory<String, Message> messageProducerFactory() {
+        return new DefaultKafkaProducerFactory<>(producerConfigurations());
+    }
+
+    @Bean
+    public ProducerFactory<String, DeleteUserCommand> deleteCommandProducerFactory() {
         return new DefaultKafkaProducerFactory<>(producerConfigurations());
     }
 
@@ -38,8 +42,13 @@ public class ChatConfiguration {
     }
 
     @Bean
-    public KafkaTemplate<String, Message> kafkaTemplate() {
+    public KafkaTemplate<String, Message> kafkaMessageTemplate() {
         return new KafkaTemplate<>(messageProducerFactory());
+    }
+
+    @Bean
+    public KafkaTemplate<String, DeleteUserCommand> kafkaDeleteTemplate() {
+        return new KafkaTemplate<>(deleteCommandProducerFactory());
     }
 
     @Bean
