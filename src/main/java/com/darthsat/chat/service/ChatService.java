@@ -6,6 +6,11 @@ import com.darthsat.chat.repository.ChatRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
+import javax.persistence.PersistenceUnit;
 import java.util.Optional;
 
 @Service
@@ -20,13 +25,37 @@ public class ChatService {
     @Autowired
     private UserService userService;
 
-    public Chat createGroupChat(Chat chat) {
-        messagingService.createGroupChatConsumer(userService.getCurrentUser().getUserName(), chat.getChatName());
-        return chatRepository.save(chat);
+    @PersistenceUnit
+    private EntityManagerFactory entityManagerFactory;
+
+    private EntityManager em;
+
+    @PostConstruct
+    public void init() {
+        em = entityManagerFactory.createEntityManager();
+    }
+
+    public boolean createGroupChat(Chat chat) {
+        EntityTransaction tx = em.getTransaction();
+        boolean saved = false;
+        tx.begin();
+        try {
+            messagingService.createGroupChatConsumer(userService.getCurrentUser().getUserName(), chat.getChatName());
+            chatRepository.save(chat);
+            User currentUser = userService.getCurrentUser();
+            currentUser.getChats().add(chat);
+            userService.saveUser(currentUser);
+            tx.commit();
+            saved = true;
+        } catch (Exception e) {
+            System.out.println("Cannot create chat");
+            tx.rollback();
+        }
+        return saved;
     }
 
     public Chat findChatByName(String name) {
-        Chat chat = chatRepository.findById(name).orElse(null);
+        Chat chat = chatRepository.findChatById(name);
         if (chat == null) {
             System.out.println("no such chat");
         }
@@ -42,17 +71,25 @@ public class ChatService {
     }
 
     public void deleteUserFromChat(String chatName, String userName) {
-        Optional<Chat> chat = chatRepository.findById(chatName);
+        Chat chat = chatRepository.findChatById(chatName);
         Optional<User> user = userService.findUser(userName);
-        if (chat.isEmpty() || user.isEmpty()) {
+        if (chat == null || user.isEmpty()) {
             return;
         }
 
         boolean removed = user.get().getChats().removeIf(x -> x.getChatName().equals(chatName));
         System.out.println(removed ? "User " + userName + " deleted." : "no such user in chat");
         if (removed) {
-            messagingService.sendDeleteCommand(chatName, userName);
-            userService.saveUser(user.get());
+            EntityTransaction tx = em.getTransaction();
+            tx.begin();
+            try {
+                messagingService.sendDeleteCommand(chatName, userName);
+                userService.saveUser(user.get());
+                tx.commit();
+            } catch (Exception e) {
+                tx.rollback();
+            }
+
         }
     }
 
