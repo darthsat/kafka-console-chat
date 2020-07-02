@@ -10,5 +10,4 @@ import java.util.List;
 public interface MessagesRepository extends JpaRepository<Messages, Long> {
 
     List<Messages> findAllByChatNameOrderByMessageTimeAsc(String chatName);
-
 }

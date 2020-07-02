@@ -1,7 +1,6 @@
 package com.darthsat.chat.runner;
 
 import com.darthsat.chat.entity.Chat;
-import com.darthsat.chat.entity.User;
 import com.darthsat.chat.service.ChatService;
 import com.darthsat.chat.service.MessagingService;
 import com.darthsat.chat.service.UserService;
@@ -76,10 +75,9 @@ public class Runner implements CommandLineRunner {
             if (!isBlank(chatName)) {
                 Chat chat = new Chat();
                 chat.setChatName(chatName);
-                chatService.createGroupChat(chat);
-                User currentUser = userService.getCurrentUser();
-                currentUser.getChats().add(chat);
-                userService.saveUser(currentUser);
+                if (!chatService.createGroupChat(chat)) {
+                    return "";
+                }
             } else {
                 System.out.println("Name must not be empty.");
             }

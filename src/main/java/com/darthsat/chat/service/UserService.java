@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -17,8 +18,12 @@ public class UserService {
     private User currentUser;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private CrudRepository<User, String> userRepository;
 
+    @Transactional
     public User getOrCreateUserByName(String userName) {
         Optional<User> user = findUser(userName);
         return user.orElseGet(() -> userRepository.save(new User(userName, Role.USER, new ArrayList<>())));
@@ -28,6 +33,7 @@ public class UserService {
         return userRepository.findById(userName);
     }
 
+    @Transactional
     public void saveUser(User user) {
         userRepository.save(user);
     }
@@ -36,13 +42,14 @@ public class UserService {
         currentUser = getOrCreateUserByName(userName);
     }
 
+    @Transactional
     public void makeAdmin(User user) {
         user.setRole(Role.ADMIN);
         userRepository.save(user);
     }
 
     public void makeCurrentUserAdmin() {
-        makeAdmin(currentUser);
+        userService.makeAdmin(currentUser);
         System.out.println("you're an admin now");
     }
 
