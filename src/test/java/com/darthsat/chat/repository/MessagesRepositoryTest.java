@@ -1,5 +1,6 @@
 package com.darthsat.chat.repository;
 
+import com.darthsat.chat.entity.MessagePK;
 import com.darthsat.chat.entity.Messages;
 import com.darthsat.chat.messaging.Message;
 import org.junit.jupiter.api.Test;
@@ -32,14 +33,17 @@ class MessagesRepositoryTest {
         Messages message2 = new Messages();
         message2.setMessage(new Message("asd", "2", System.currentTimeMillis()));
         message2.setChatName("chat");
+        em.persist(message2);
 
         Messages message3 = new Messages();
         message3.setMessage(new Message("asd", "3", System.currentTimeMillis()));
         message3.setChatName("chat1");
+        em.persist(message3);
 
         Messages message4 = new Messages();
         message4.setMessage(new Message("asd", "4", System.currentTimeMillis()));
         message4.setChatName("chat");
+        em.persist(message4);
 
         assertEquals(message1, messagesRepository.findAllByChatNameOrderByMessageTimeAsc("chat").get(0));
         assertEquals(message2, messagesRepository.findAllByChatNameOrderByMessageTimeAsc("chat").get(1));
@@ -56,6 +60,6 @@ class MessagesRepositoryTest {
         em.persist(message1);
         messagesRepository.save(message1);
 
-        assertEquals(message1, em.find(Messages.class, 1L));
+        assertEquals(message1, em.find(Messages.class, new MessagePK("chat", 1L)));
     }
 }
