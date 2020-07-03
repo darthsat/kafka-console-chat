@@ -32,11 +32,11 @@ public class ChatService {
     }
 
     public Chat findChatByName(String name) {
-        Chat chat = chatRepository.findById(name).get();
-        if (chat == null) {
+        Optional<Chat> chat = chatRepository.findById(name);
+        if (chat.isEmpty()) {
             System.out.println("no such chat");
         }
-        return chat;
+        return chat.orElse(null);
     }
 
     @Transactional
@@ -50,9 +50,9 @@ public class ChatService {
 
     @Transactional
     public void deleteUserFromChat(String chatName, String userName) {
-        Chat chat = chatRepository.findById(chatName).get();
+        Optional<Chat> chat = chatRepository.findById(chatName);
         Optional<User> user = userService.findUser(userName);
-        if (chat == null || user.isEmpty()) {
+        if (chat.isEmpty() || user.isEmpty()) {
             return;
         }
 
