@@ -3,25 +3,19 @@ package com.darthsat.chat.service;
 import com.darthsat.chat.entity.Chat;
 import com.darthsat.chat.entity.User;
 import com.darthsat.chat.repository.ChatRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
-import java.util.Optional;
 
-@Service
 public class ChatService {
 
-    @Autowired
-    private ChatRepository chatRepository;
-
-    @Autowired
+    private ChatRepository chatRepository = new ChatRepository();
     private MessagingService messagingService;
-
-    @Autowired
     private UserService userService;
 
-    @Transactional
+    public ChatService(MessagingService messagingService, UserService userService) {
+        this.messagingService = messagingService;
+        this.userService = userService;
+    }
+
     public boolean createGroupChat(Chat chat) {
         messagingService.createGroupChatConsumer(userService.getCurrentUser().getUserName(), chat.getChatName());
         chatRepository.save(chat);
@@ -32,14 +26,13 @@ public class ChatService {
     }
 
     public Chat findChatByName(String name) {
-        Optional<Chat> chat = chatRepository.findById(name);
-        if (chat.isEmpty()) {
+        Chat chat = chatRepository.findChatById(name);
+        if (chat == null) {
             System.out.println("no such chat");
         }
-        return chat.orElse(null);
+        return chat;
     }
 
-    @Transactional
     public void addUserToChat(Chat chat, User user) {
         if (user.getChats().stream().anyMatch(x -> x.equals(chat))) {
             return;
@@ -48,19 +41,18 @@ public class ChatService {
         userService.saveUser(user);
     }
 
-    @Transactional
     public void deleteUserFromChat(String chatName, String userName) {
-        Optional<Chat> chat = chatRepository.findById(chatName);
-        Optional<User> user = userService.findUser(userName);
-        if (chat.isEmpty() || user.isEmpty()) {
+        Chat chat = chatRepository.findChatById(chatName);
+        User user = userService.findUser(userName);
+        if (chat == null || user == null) {
             return;
         }
 
-        boolean removed = user.get().getChats().removeIf(x -> x.getChatName().equals(chatName));
+        boolean removed = user.getChats().removeIf(x -> x.getChatName().equals(chatName));
         System.out.println(removed ? "User " + userName + " deleted." : "no such user in chat");
         if (removed) {
             messagingService.sendDeleteCommand(chatName, userName);
-            userService.saveUser(user.get());
+            userService.saveUser(user);
         }
     }
 

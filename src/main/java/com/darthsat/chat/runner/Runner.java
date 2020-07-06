@@ -4,41 +4,37 @@ import com.darthsat.chat.entity.Chat;
 import com.darthsat.chat.service.ChatService;
 import com.darthsat.chat.service.MessagingService;
 import com.darthsat.chat.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
 
+import java.util.Objects;
 import java.util.Scanner;
 
-import static org.apache.logging.log4j.util.Strings.isBlank;
-
-@Component
-public class Runner implements CommandLineRunner {
+public class Runner {
 
     private static final String EXIT = "exit";
     private final Scanner scanner = new Scanner(System.in);
 
-    @Autowired
     private UserService userService;
-
-    @Autowired
     private ChatService chatService;
-
-    @Autowired
     private MessagingService messagingService;
 
-    @Override
+    public Runner(UserService userService, ChatService chatService, MessagingService messagingService) {
+        this.userService = userService;
+        this.chatService = chatService;
+        this.messagingService = messagingService;
+    }
+
     public void run(String... args) {
         while (userService.getCurrentUser() == null) {
             System.out.println("Enter your name:");
             String userName = scanner.nextLine();
-            if (!isBlank(userName)) {
+            if (!Objects.equals(userName, "")) {
                 userService.setCurrentUserByName(userName);
             } else {
                 System.out.println("Name must not be empty.");
             }
         }
-        messagingService.createPrivateChatConsumer(userService.getCurrentUser().getUserName());
+
+        messagingService.init(userService.getCurrentUser().getUserName());
 
         System.out.println("Welcome.");
         String command = "";
@@ -72,7 +68,7 @@ public class Runner implements CommandLineRunner {
         while (chatName.isBlank()) {
             System.out.println("Enter chat name:");
             chatName = scanner.nextLine();
-            if (!isBlank(chatName)) {
+            if (!Objects.equals(chatName, "")) {
                 Chat chat = new Chat();
                 chat.setChatName(chatName);
                 if (!chatService.createGroupChat(chat)) {
@@ -91,7 +87,7 @@ public class Runner implements CommandLineRunner {
         while (chatName.isBlank() || chat == null) {
             System.out.println("Enter chat name:");
             chatName = scanner.nextLine();
-            if (!isBlank(chatName)) {
+            if (!Objects.equals(chatName, "")) {
                 chat = chatService.findChatByName(chatName);
                 if (chat != null) {
                     chatService.addUserToChat(chat, userService.getCurrentUser());
@@ -161,17 +157,13 @@ public class Runner implements CommandLineRunner {
     private String runPrivate() {
         System.out.println("Enter recipient");
         String recipient = scanner.nextLine();
-        System.out.println("Type your message. --pc for public chat. --cr to change recipient. --exit to exit app.");
+        System.out.println("Type your message. --rt for return. --cr to change recipient. --exit to exit app.");
         String command = "";
         while (!EXIT.equals(command)) {
             command = scanner.nextLine();
             switch (command) {
-                case "cc":
-                    command = runNewChat();
-                    break;
-                case "jc":
-                    command = runNewChat();
-                    break;
+                case "rt":
+                    return "";
                 case "--cr":
                     return runPrivate();
                 case "--exit":

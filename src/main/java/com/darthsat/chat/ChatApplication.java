@@ -1,13 +1,19 @@
 package com.darthsat.chat;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import com.darthsat.chat.runner.Runner;
+import com.darthsat.chat.service.ChatService;
+import com.darthsat.chat.service.MessagingService;
+import com.darthsat.chat.service.UserService;
 
-@SpringBootApplication
+
 public class ChatApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(ChatApplication.class, args);
+        UserService userService = new UserService();
+        MessagingService messagingService = new MessagingService(userService);
+        ChatService chatService = new ChatService(messagingService, userService);
+
+        new Runner(userService, chatService, messagingService).run();
     }
 }
 
