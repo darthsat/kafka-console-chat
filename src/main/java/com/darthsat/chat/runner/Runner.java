@@ -38,7 +38,18 @@ public class Runner implements CommandLineRunner {
                 System.out.println("Name must not be empty.");
             }
         }
-        messagingService.createPrivateChatConsumer(userService.getCurrentUser().getUserName());
+
+        while (userService.getCurrentUser().getPassword() == null) {
+            System.out.println("Please set your password:");
+            String password = scanner.nextLine();
+            if (!isBlank(password)) {
+                userService.setCurrentUserPassword(password);
+            } else {
+                System.out.println("Name must not be empty.");
+            }
+        }
+
+        messagingService.createPrivateChatConsumer(userService.getCurrentUser().getUsername());
 
         System.out.println("Welcome.");
         String command = "";
@@ -95,7 +106,7 @@ public class Runner implements CommandLineRunner {
                 chat = chatService.findChatByName(chatName);
                 if (chat != null) {
                     chatService.addUserToChat(chat, userService.getCurrentUser());
-                    messagingService.createGroupChatConsumer(userService.getCurrentUser().getUserName(), chatName);
+                    messagingService.createGroupChatConsumer(userService.getCurrentUser().getUsername(), chatName);
                 }
             } else {
                 System.out.println("Name must not be empty.");

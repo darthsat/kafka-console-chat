@@ -37,7 +37,7 @@ public class MessagingService {
 
     public boolean isUserDeletedFrom(String chatName) {
         return deleteUserCommandList.removeIf(x -> x.getChatName().equals(chatName) &&
-                x.getUserName().equals(userService.getCurrentUser().getUserName()));
+                x.getUsername().equals(userService.getCurrentUser().getUsername()));
     }
 
     public void createGroupChatConsumer(String userName, String chatName) {
@@ -47,7 +47,7 @@ public class MessagingService {
             if (x.value() instanceof Message) {
                 System.out.println(x.value());
             } else if (x.value() instanceof DeleteUserCommand &&
-                    ((DeleteUserCommand) x.value()).getUserName().equals(userName) &&
+                    ((DeleteUserCommand) x.value()).getUsername().equals(userName) &&
                     ((DeleteUserCommand) x.value()).getChatName().equals(chatName)) {
                 deleteUserCommandList.add((DeleteUserCommand) x.value());
                 System.out.println("you have been deleted from chat " + chatName);
@@ -66,7 +66,7 @@ public class MessagingService {
     }
 
     public void sendMessage(String chat, String message) {
-        kafkaTemplate.send(chat, new Message(userService.getCurrentUser().getUserName(), message, System.currentTimeMillis()));
+        kafkaTemplate.send(chat, new Message(userService.getCurrentUser().getUsername(), message, System.currentTimeMillis()));
     }
 
     public void sendDeleteCommand(String chat, String userName) {

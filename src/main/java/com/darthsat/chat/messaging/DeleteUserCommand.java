@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DeleteUserCommand {
 
-    private String userName;
+    private String username;
     private String chatName;
 }

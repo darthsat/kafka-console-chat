@@ -23,7 +23,7 @@ public class ChatService {
 
     @Transactional
     public boolean createGroupChat(Chat chat) {
-        messagingService.createGroupChatConsumer(userService.getCurrentUser().getUserName(), chat.getChatName());
+        messagingService.createGroupChatConsumer(userService.getCurrentUser().getUsername(), chat.getChatName());
         chatRepository.save(chat);
         User currentUser = userService.getCurrentUser();
         currentUser.getChats().add(chat);
