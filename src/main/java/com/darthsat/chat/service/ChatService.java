@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -69,4 +70,25 @@ public class ChatService {
         messagingService.getHistoryForChat(chatName).forEach(x -> System.out.println(x.getMessage()));
     }
 
+    public List<Chat> getAllChats() {
+        return chatRepository.findAll();
+    }
+
+    public Chat updateChat(Chat chat) {
+        Optional<Chat> chatById = chatRepository.findById(chat.getChatName());
+        return chatById.isEmpty() ? chatRepository.save(chat) : null;
+    }
+
+    public Chat deleteChat(String chatName) {
+        Optional<Chat> chatById = chatRepository.findById(chatName);
+        if (chatById.isEmpty()) {
+            return null;
+        }
+        chatRepository.delete(chatById.get());
+        return chatById.get();
+    }
+
+    public Chat createChat(Chat chat) {
+        return chatRepository.save(chat);
+    }
 }

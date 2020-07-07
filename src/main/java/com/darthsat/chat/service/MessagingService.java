@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class MessagingService {
@@ -91,4 +92,25 @@ public class MessagingService {
         container.start();
     }
 
+    public List<Messages> getAllMessagesByChatName(String chatName) {
+        return messagesRepository.findAllByChatNameOrderByMessageTimeAsc(chatName);
+    }
+
+    public Messages updateMessage(Messages messages) {
+        Optional<Messages> messagesById = messagesRepository.findById(messages.getMessageId());
+        return messagesById.isEmpty() ? messagesRepository.save(messages) : null;
+    }
+
+    public Messages deleteMessage(Long messageId) {
+        Optional<Messages> messagesById = messagesRepository.findById(messageId);
+        if (messagesById.isEmpty()) {
+            return null;
+        }
+        messagesRepository.delete(messagesById.get());
+        return messagesById.get();
+    }
+
+    public Messages createMessage(Messages message) {
+        return messagesRepository.save(message);
+    }
 }

@@ -2,15 +2,16 @@ package com.darthsat.chat.service;
 
 import com.darthsat.chat.entity.Role;
 import com.darthsat.chat.entity.User;
+import com.darthsat.chat.repository.UserRepository;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -23,7 +24,7 @@ public class UserService implements UserDetailsService {
     private UserService userService;
 
     @Autowired
-    private CrudRepository<User, String> userRepository;
+    private UserRepository userRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -75,5 +76,27 @@ public class UserService implements UserDetailsService {
     public void setCurrentUserPassword(String password) {
         currentUser.setPassword(passwordEncoder.encode(password));
         saveUser(currentUser);
+    }
+
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    public User updateUser(User user) {
+        Optional<User> userById = userRepository.findById(user.getUsername());
+        return userById.isEmpty() ? userRepository.save(user) : null;
+    }
+
+    public User deleteUser(String userName) {
+        Optional<User> userById = userRepository.findById(userName);
+        if (userById.isEmpty()) {
+            return null;
+        }
+        userRepository.delete(userById.get());
+        return userById.get();
+    }
+
+    public User createUser(User user) {
+        return userRepository.save(user);
     }
 }
